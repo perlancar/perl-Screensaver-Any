@@ -270,6 +270,7 @@ $SPEC{enable_screensaver} = {
 };
 sub enable_screensaver {
     my %args = @_;
+    [501, "Not yet implemented"];
 }
 
 $SPEC{disable_screensaver} = {
@@ -281,6 +282,7 @@ $SPEC{disable_screensaver} = {
 };
 sub disable_screensaver {
     my %args = @_;
+    [501, "Not yet implemented"];
 }
 
 $SPEC{activate_screensaver} = {
@@ -369,7 +371,7 @@ sub is_screensaver_active {
     my $screensaver = $args{screensaver} // detect_screensaver();
 
     if ($screensaver eq 'kde') {
-        my $res = readpipe(`qdbus org.kde.screensaver /ScreenSaver GetActive`);
+        my $res = `qdbus org.kde.screensaver /ScreenSaver GetActive`;
         if ($res =~ /true/) {
             return [200, "OK", 1];
         } elsif ($res =~ /false/) {
@@ -380,7 +382,7 @@ sub is_screensaver_active {
     }
 
     if ($screensaver eq 'gnome') {
-        my $res = readpipe(`gnome-screensaver-command -q`);
+        my $res = `gnome-screensaver-command -q`;
         if ($res =~ /is active/) {
             return [200, "OK", 1];
         } elsif ($res =~ /is inactive/) {
@@ -391,7 +393,7 @@ sub is_screensaver_active {
     }
 
     if ($screensaver eq 'cinnamon') {
-        my $res = readpipe(`cinnamon-screensaver-command -q`);
+        my $res = `cinnamon-screensaver-command -q`;
         if ($res =~ /is active/) {
             return [200, "OK", 1];
         } elsif ($res =~ /is inactive/) {
@@ -415,17 +417,3 @@ sub is_screensaver_active {
 
 1;
 # ABSTRACT:
-
-=head1 KNOWN BUGS
-
-=over
-
-=item * Sometimes fail to lock on KDE
-
-KDE is supposed to pick up on the changes in
-`~/.kde/share/config/kscreensaverrc` immediately, and this is confirmed by
-running the dialog `kcmshell4 screensaver`. However, sometimes the change does
-not take effect and the screensaver won't trigger even after the timeout has
-long passed.
-
-=back
