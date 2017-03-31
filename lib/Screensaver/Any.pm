@@ -172,7 +172,7 @@ sub _get_or_set_screensaver_timeout {
 
 $SPEC{get_screensaver_timeout} = {
     v => 1.1,
-    summary => 'Get screensaver timeout, in number of seconds',
+    summary => 'Get screensaver idle timeout, in number of seconds',
     args => {
         %arg_screensaver,
     },
@@ -187,7 +187,7 @@ sub get_screensaver_timeout {
 
 $SPEC{set_screensaver_timeout} = {
     v => 1.1,
-    summary => 'Set screensaver timeout',
+    summary => 'Set screensaver idle timeout',
     description => <<'_',
 
 * xscreensaver
@@ -326,8 +326,13 @@ $SPEC{deactivate_screensaver} = {
     description => <<'_',
 
 If screen is not being blank (screensaver is not activated) then nothing
-happens. Also, if screen is being locked, on some screensavers it will not be
-unlocked and user will need to unlock the screen herself first.
+happens. If screen is being blanked (screensaver is activated) then unblank the
+screen.
+
+Often the screen is also locked when being blanked. On some screensavers, like
+xscreensaver, deactivating won't unlock the screen and user will need to unlock
+the screen herself first. Some other screensavers, like GNOME/cinnamon, will
+happily unlock the screen automatically.
 
 _
     args => {
@@ -339,7 +344,7 @@ sub deactivate_screensaver {
     my $screensaver = $args{screensaver} // detect_screensaver();
 
     if ($screensaver eq 'kde') {
-        return [501, "This function is not supported by kde"];
+        return [501, "Deactivating screensaver is not supported on kde"];
     }
 
     if ($screensaver eq 'gnome') {
@@ -353,7 +358,8 @@ sub deactivate_screensaver {
     }
 
     if ($screensaver eq 'xscreensaver') {
-        system "xscreensaver-command", "-deactivate";
+        system({capture_stdout=>\my $dummy_stdout},
+               "xscreensaver-command", "-deactivate");
         if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
     }
 
@@ -369,6 +375,7 @@ $SPEC{screensaver_is_active} = {
 };
 sub screensaver_is_active {
     my %args = @_;
+
     my $screensaver = $args{screensaver} // detect_screensaver();
 
     if ($screensaver eq 'kde') {
