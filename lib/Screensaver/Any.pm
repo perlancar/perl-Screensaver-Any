@@ -411,10 +411,53 @@ sub screensaver_is_active {
     [412, "Unknown screensaver '$screensaver'"];
 }
 
+$SPEC{prevent_screensaver_activated} = {
+    v => 1.1,
+    summary => 'Prevent screensaver from being activated by resetting idle timer',
+    description => <<'_',
+
+You can use this function to prevent screensaver from being activated, if it is
+not yet being activated. This is usually done by resetting the idle counter.
+With KDE, this is called "simulating user activity". With xscreensaver, one can
+use the -deactivate on the CLI.
+
+This function will need to be run periodically and often enough (more often than
+the idle timeout period) to actually keep the screensaver from ever being
+activated.
+
+If screensaver is already activated, then nothing happens.
+
+_
+};
+sub prevent_screensaver_activated {
+    my %args = @_;
+
+    my $screensaver = $args{screensaver} // detect_screensaver();
+
+    if ($screensaver eq 'kde') {
+        system "qdbus", "org.kde.screensaver", "/ScreenSaver", "SimulateUserActivity";
+        return $? ? [500, "Failed"] : [200];
+    }
+
+    if ($screensaver eq 'gnome') {
+        return [501, "Preventing screensaver from being activated not yet supported on gnome"];
+    }
+
+    if ($screensaver eq 'cinnamon') {
+        return [501, "Preventing screensaver from being activated not yet supported on cinnamon"];
+    }
+
+    if ($screensaver eq 'xscreensaver') {
+        system({capture_stdout => \my $dummy_stdout},
+               "xscreensaver-command", "-deactivate");
+        return $? ? [500, "Failed"] : [200];
+    }
+
+    [412, "Unknown screensaver '$screensaver'"];
+}
+
 # XXX get_screensaver_active_time (in KDE, we can use GetActiveTime, in xscreensaver -time, in gnome/cinnamon -t)
 # XXX get_screensaver_idle_time (in KDE, we can use GetSessionIdleTime, in xscreensaver -time, in gnome/cinnamon -t)
-# XXX hearbeat_screensaver (in KDE, we use SimulateUserActivity, in xscreensaver -deactivate?)
-# XXX run a command with screensaver disabled
 
 1;
 # ABSTRACT:
