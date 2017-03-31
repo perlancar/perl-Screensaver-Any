@@ -69,6 +69,7 @@ sub detect_screensaver {
     }
 
     require Proc::Find;
+    no warnings 'once';
     local $Proc::Find::CACHE = 1;
 
   GNOME:
