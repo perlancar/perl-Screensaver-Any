@@ -359,14 +359,14 @@ sub deactivate_screensaver {
     [412, "Unknown screensaver '$screensaver'"];
 }
 
-$SPEC{is_screensaver_active} = {
+$SPEC{screensaver_is_active} = {
     v => 1.1,
     summary => 'Check if screensaver is being activated',
     args => {
         %arg_screensaver,
     },
 };
-sub is_screensaver_active {
+sub screensaver_is_active {
     my %args = @_;
     my $screensaver = $args{screensaver} // detect_screensaver();
 
