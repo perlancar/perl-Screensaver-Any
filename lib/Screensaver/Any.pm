@@ -325,8 +325,8 @@ $SPEC{deactivate_screensaver} = {
     description => <<'_',
 
 If screen is not being blank (screensaver is not activated) then nothing
-happens. Also, if screen is being locked, it will not be unlocked. User will
-need to unlock the screen herself first.
+happens. Also, if screen is being locked, on some screensavers it will not be
+unlocked and user will need to unlock the screen herself first.
 
 _
     args => {
