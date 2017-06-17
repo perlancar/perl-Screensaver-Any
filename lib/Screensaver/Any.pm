@@ -271,6 +271,13 @@ $SPEC{enable_screensaver} = {
 };
 sub enable_screensaver {
     my %args = @_;
+    my $screensaver = $args{screensaver} // detect_screensaver();
+
+    if ($screensaver eq 'gnome') {
+        system "gsettings", "set", "org.gnome.desktop.lockdown", "disable-lock-screen", "false";
+        if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
+    }
+
     [501, "Not yet implemented"];
 }
 
@@ -283,6 +290,13 @@ $SPEC{disable_screensaver} = {
 };
 sub disable_screensaver {
     my %args = @_;
+    my $screensaver = $args{screensaver} // detect_screensaver();
+
+    if ($screensaver eq 'gnome') {
+        system "gsettings", "set", "org.gnome.desktop.lockdown", "disable-lock-screen", "true";
+        if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
+    }
+
     [501, "Not yet implemented"];
 }
 
