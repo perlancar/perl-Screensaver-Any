@@ -75,7 +75,7 @@ sub detect_screensaver {
   GNOME:
     {
         last unless Proc::Find::proc_exists(name => "gnome-screensaver");
-        return "gnome";
+        return "gnome"; # <= 3.6
     }
 
   CINNAMON:
@@ -482,3 +482,12 @@ sub prevent_screensaver_activated {
 
 1;
 # ABSTRACT:
+
+=head1 NOTES
+
+In GNOME 3.8 and later, C<gnome-screensaver> command has been removed (one of
+the reasons is consideration of the eventual move to Wayland). Locking/unlocking
+screen can be done if you install C<gnome-screensaver> separately, or use other
+screensaver like C<xscreensaver>, or use C<gdm> (in which case you can use a
+command like C<< dbus-send --type=method_call --dest=org.gnome.ScreenSaver
+/org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock >>).
