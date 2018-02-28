@@ -6,6 +6,7 @@ package Screensaver::Any;
 use 5.010001;
 use strict;
 use warnings;
+use Log::ger;
 
 use Exporter::Rinci qw(import);
 use File::Which qw(which);
@@ -61,10 +62,21 @@ sub detect_screensaver {
 
   KDE:
     {
-        last unless which("qdbus");
-        system({capture_stdout=>\my $dummy_out, capture_stderr=>\my $dummy_err},
+        log_trace "Checking qdbus program ...";
+        unless (which("qdbus")) {
+            log_trace "qdbus doesn't exist";
+            last;
+        }
+        log_trace "qdbus exists";
+        system({log=>1,
+                capture_stdout=>\my $dummy_out, capture_stderr=>\my $dummy_err},
                "qdbus", "org.kde.screensaver");
-        last if $?;
+        if ($?) {
+            log_trace "Couldn't check org.kde.screensaver dbus service";
+            last;
+        }
+        log_trace "org.kde.screensaver dbus service exists";
+        log_trace "Concluding screensaver is kde";
         return "kde";
     }
 
@@ -74,19 +86,37 @@ sub detect_screensaver {
 
   GNOME:
     {
-        last unless Proc::Find::proc_exists(name => "gnome-screensaver");
+        log_trace "Checking whether gnome-screensaver process exists ...";
+        unless (Proc::Find::proc_exists(name => "gnome-screensaver")) {
+            log_trace "gnome-screensaver process doesn't exist";
+            last;
+        }
+        log_trace "gnome-screensaver process exists";
+        log_trace "Concluding screensaver is gnome (<= 3.6)";
         return "gnome"; # <= 3.6
     }
 
   CINNAMON:
     {
-        last unless Proc::Find::proc_exists(name => "cinnamon-screensaver");
+        log_trace "Checking whether cinnamon-screensaver process exists ...";
+        unless (Proc::Find::proc_exists(name => "cinnamon-screensaver")) {
+            log_trace "cinnamon-screensaver process doesn't exist";
+            last;
+        }
+        log_trace "cinnamon-screensaver process exists";
+        log_trace "Concluding screensaver is cinnamon";
         return "cinnamon";
     }
 
   XSCREENSAVER:
     {
-        last unless Proc::Find::proc_exists(name => "xscreensaver");
+        log_trace "Checking whether xscreensaver process exists ...";
+        unless (Proc::Find::proc_exists(name => "xscreensaver")) {
+            log_trace "xscreensaver process doesn't exist";
+            last;
+        }
+        log_trace "xscreensaver process exists";
+        log_trace "Concluding screensaver is xscreensaver";
         return "xscreensaver";
     }
 
