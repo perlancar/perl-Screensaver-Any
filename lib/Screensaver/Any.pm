@@ -10,7 +10,7 @@ use Log::ger;
 
 use Exporter::Rinci qw(import);
 use File::Which qw(which);
-use IPC::System::Options qw(system readpipe);
+use IPC::System::Options 'system', 'readpipe', -log=>1;
 
 my $known_screensavers = [qw/kde gnome cinnamon xscreensaver/];
 my $sch_screensaver = ['str', in=>$known_screensavers];
@@ -68,8 +68,7 @@ sub detect_screensaver {
             last;
         }
         log_trace "qdbus exists";
-        system({log=>1,
-                capture_stdout=>\my $dummy_out, capture_stderr=>\my $dummy_err},
+        system({capture_stdout=>\my $dummy_out, capture_stderr=>\my $dummy_err},
                "qdbus", "org.kde.screensaver");
         if ($?) {
             log_trace "Couldn't check org.kde.screensaver dbus service";
@@ -180,24 +179,68 @@ sub _get_or_set_screensaver_timeout {
     }
 
     if ($screensaver eq 'kde') {
-        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
-        my $ct = File::Slurper::read_text($path);
-        if ($which eq 'set') {
-            my $secs = $mins*60;
-            $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
-                or return [500, "Can't subtitute Timeout setting in $path"];
-            File::Slurper::write_text($path, $ct);
+        my $path;
+
+        {
+            $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
+            log_trace "Checking $path ...";
+            unless (-f $path) {
+                log_trace "$path doesn't exist";
+                last;
+            }
+            log_trace "$path exists";
+            my $ct = File::Slurper::read_text($path);
+            if ($which eq 'set') {
+                my $secs = $mins*60;
+                $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
+                    or return [500, "Can't subtitute Timeout setting in $path"];
+                File::Slurper::write_text($path, $ct);
+            }
+            $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
+                or return [500, "Can't get Timeout setting in $path"];
+            my $val = $1;
+            return [200, "OK", ($which eq 'set' ? undef : $val), {
+                'func.timeout' => $val,
+                'func.screensaver'=>'kde-plasma',
+            }];
         }
-        $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
-            or return [500, "Can't get Timeout setting in $path"];
-        my $val = $1;
-        return [200, "OK", ($which eq 'set' ? undef : $val), {
-            'func.timeout' => $val,
-            'func.screensaver'=>'kde-plasma',
-        }];
+
+        {
+            $path = "$ENV{HOME}/.config/kscreenlockerrc";
+            log_trace "Checking $path ...";
+            unless (-f $path) {
+                log_trace "$path doesn't exist";
+                last;
+            }
+            log_trace "$path exists";
+            my $ct = File::Slurper::read_text($path);
+            if ($which eq 'set') {
+                if ($ct =~ /^Timeout/m) {
+                    log_trace "Replacing Timeout setting in $path ...";
+                    $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$mins/m
+                        or return [500, "Can't subtitute Timeout setting in $path"];
+                } else {
+                    log_trace "Adding Timeout setting in $path ...";
+                    $ct .= "\n[Daemon]\nTimeout=$mins\n";
+                }
+                File::Slurper::write_text($path, $ct);
+            }
+            my $val;
+            if ($ct =~ /^Timeout\s*=\s*(\d+)\s*$/m) {
+                $val = $1*60;
+                log_trace "Got Timeout setting from $path";
+            } else {
+                $val = 5*60;
+                log_trace "Assuming default of 5 minutes in $path";
+            }
+            return [200, "OK", ($which eq 'set' ? undef : $val), {
+                'func.timeout' => $val,
+                'func.screensaver'=>'kde-plasma',
+            }];
+        }
     }
 
-    [412, "Unknown screensaver '$screensaver'"];
+    [412, "Cannot get/set screensaver timeout (screensaver=$screensaver)"];
 }
 
 $SPEC{get_screensaver_timeout} = {
