@@ -60,6 +60,18 @@ _
 sub detect_screensaver {
     my %args = @_;
 
+  XSCREENSAVER:
+    {
+        log_trace "Checking whether xscreensaver process exists ...";
+        unless (Proc::Find::proc_exists(name => "xscreensaver")) {
+            log_trace "xscreensaver process doesn't exist";
+            last;
+        }
+        log_trace "xscreensaver process exists";
+        log_trace "Concluding screensaver is xscreensaver";
+        return "xscreensaver";
+    }
+
   KDE:
     {
         log_trace "Checking qdbus program ...";
@@ -105,18 +117,6 @@ sub detect_screensaver {
         log_trace "cinnamon-screensaver process exists";
         log_trace "Concluding screensaver is cinnamon";
         return "cinnamon";
-    }
-
-  XSCREENSAVER:
-    {
-        log_trace "Checking whether xscreensaver process exists ...";
-        unless (Proc::Find::proc_exists(name => "xscreensaver")) {
-            log_trace "xscreensaver process doesn't exist";
-            last;
-        }
-        log_trace "xscreensaver process exists";
-        log_trace "Concluding screensaver is xscreensaver";
-        return "xscreensaver";
     }
 
     undef;
