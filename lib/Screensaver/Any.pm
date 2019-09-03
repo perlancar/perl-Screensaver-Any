@@ -60,6 +60,10 @@ _
 sub detect_screensaver {
     my %args = @_;
 
+    require Proc::Find;
+    no warnings 'once';
+    local $Proc::Find::CACHE = 1;
+
   XSCREENSAVER:
     {
         log_trace "Checking whether xscreensaver process exists ...";
@@ -90,10 +94,6 @@ sub detect_screensaver {
         log_trace "Concluding screensaver is kde";
         return "kde";
     }
-
-    require Proc::Find;
-    no warnings 'once';
-    local $Proc::Find::CACHE = 1;
 
   GNOME:
     {
