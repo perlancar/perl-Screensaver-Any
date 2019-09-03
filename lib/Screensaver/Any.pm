@@ -351,7 +351,7 @@ sub enable_screensaver {
         if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
     }
 
-    [501, "Not yet implemented"];
+    [501, "Not yet implemented except for gnome-screensaver"];
 }
 
 $SPEC{disable_screensaver} = {
@@ -370,7 +370,7 @@ sub disable_screensaver {
         if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
     }
 
-    [501, "Not yet implemented"];
+    [501, "Not yet implemented except for gnome-screensaver"];
 }
 
 $SPEC{activate_screensaver} = {
