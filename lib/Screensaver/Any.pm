@@ -14,7 +14,7 @@ use IPC::System::Options 'system', 'readpipe', -log=>1;
 
 my $known_screensavers = [qw/kde gnome cinnamon xscreensaver/];
 my $sch_screensaver = ['str', in=>$known_screensavers];
-my %arg_screensaver = (
+our %arg_screensaver = (
     screensaver => {
         summary => 'Explicitly set screensaver program to use',
         schema => $sch_screensaver,
@@ -272,9 +272,9 @@ $SPEC{set_screensaver_timeout} = {
 
   modifies the line, save the file, and HUP the xscreensaver process.
 
-* gnome-screensaver
+* gnome
 
-  To set timeout for gnome-screensaver, the program executes this command:
+  To set timeout for gnome screensaver, the program executes this command:
 
       gsettings set org.gnome.desktop.session idle-delay 300
 
@@ -351,7 +351,7 @@ sub enable_screensaver {
         if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
     }
 
-    [501, "Not yet implemented except for gnome-screensaver"];
+    [501, "Not yet implemented except for gnome"];
 }
 
 $SPEC{disable_screensaver} = {
@@ -370,7 +370,7 @@ sub disable_screensaver {
         if ($?) { return [500, "Failed"] } else { return [200, "OK"] }
     }
 
-    [501, "Not yet implemented except for gnome-screensaver"];
+    [501, "Not yet implemented except for gnome"];
 }
 
 $SPEC{screensaver_is_enabled} = {
@@ -389,7 +389,7 @@ sub screensaver_is_enabled {
         if ($?) { return [500, "Failed"] } else { return [200, "OK", $read =~ /false/ ? 1 : $read =~ /true/ ? 0 : undef] }
     }
 
-    [501, "Not yet implemented except for gnome-screensaver"];
+    [501, "Not yet implemented except for gnome"];
 }
 
 $SPEC{activate_screensaver} = {
