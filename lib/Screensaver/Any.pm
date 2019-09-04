@@ -373,6 +373,25 @@ sub disable_screensaver {
     [501, "Not yet implemented except for gnome-screensaver"];
 }
 
+$SPEC{screensaver_is_enabled} = {
+    v => 1.1,
+    summary => 'Check whether screensaver is enabled',
+    args => {
+        %arg_screensaver,
+    },
+};
+sub screensaver_is_enabled {
+    my %args = @_;
+    my $screensaver = $args{screensaver} // detect_screensaver();
+
+    if ($screensaver eq 'gnome') {
+        my $read = readpipe "gsettings", "get", "org.gnome.desktop.lockdown", "disable-lock-screen";
+        if ($?) { return [500, "Failed"] } else { return [200, "OK", $read =~ /false/ ? 1 : $read =~ /true/ ? 0 : undef] }
+    }
+
+    [501, "Not yet implemented except for gnome-screensaver"];
+}
+
 $SPEC{activate_screensaver} = {
     v => 1.1,
     summary => 'Activate screensaver immediately and lock screen',
